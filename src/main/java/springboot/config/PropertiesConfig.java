@@ -1,5 +1,6 @@
 package springboot.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -7,15 +8,19 @@ import org.springframework.stereotype.Component;
  * Created by qijun123 on 2018/1/16.
  */
 @Component
-@ConfigurationProperties(prefix = "springboot")
+@Data
+@ConfigurationProperties(prefix = "spring.rabbitmq")
 public class PropertiesConfig {
-    private String name;
+//    private String name = "123";
+    private String host = "localhost";
+    private int port = 15672;
 
-    public String getName() {
-        return name;
-    }
+    private String username;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    private String password;
+
+    private String virtualhost = "/";
+
+
+
 }
