@@ -4,24 +4,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import springboot.Application;
-import springboot.Sender;
+import springboot.AsyncService;
 
 /**
- * 角色表Service
- *
  * @author 祁军
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = Application.class)
-public class RabbitMQTest {
-
+public class AsyncTest {
     @Autowired
-    private Sender sender;
-
+    private AsyncService asyncService;
     @Test
-    public void send() throws Exception {
-        sender.send();
+    public void testAsync(){
+        asyncService.testAsyncService();
     }
 
 }
-
