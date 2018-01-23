@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,12 +46,14 @@ public class Application {
     }
     @RequestMapping("/testMap")
     public void testMap(@RequestBody Map<String,Object> map){
-        System.out.println(map.get("name")+"   "+map.get("list"));
+        System.out.println(map.get("name")+"   "+(map.get("list")));
+        System.out.println(map.get("list") instanceof List);
+        System.out.println(map.get("list").getClass());
     }
 
     @RequestMapping("/testRequestBody")
     public void testMap(@RequestBody InputBody input){
-        System.out.println(input.getName()+"   "+input.getName());
+        System.out.println(input.getName()+"   "+input.getList());
     }
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
