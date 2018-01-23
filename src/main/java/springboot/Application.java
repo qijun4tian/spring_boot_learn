@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 /**
  * Created by qijun123 on 2018/1/16.
@@ -40,6 +41,9 @@ public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
+
+//        Optional<String> optional = Optional.ofNullable(null);
+//        System.out.println(optional.map(l->"123").orElse("345"));
 
 
     }
