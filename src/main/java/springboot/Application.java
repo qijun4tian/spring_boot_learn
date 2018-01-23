@@ -1,11 +1,14 @@
 package springboot;
 
+import javafx.scene.media.SubtitleTrack;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springboot.config.PropertiesConfig;
@@ -14,6 +17,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -38,7 +43,15 @@ public class Application {
     public void testThreadPoll() {
         asyncService.testAsyncService();
     }
+    @RequestMapping("/testMap")
+    public void testMap(@RequestBody Map<String,Object> map){
+        System.out.println(map.get("name")+"   "+map.get("list"));
+    }
 
+    @RequestMapping("/testRequestBody")
+    public void testMap(@RequestBody InputBody input){
+        System.out.println(input.getName()+"   "+input.getName());
+    }
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
 
@@ -48,6 +61,12 @@ public class Application {
 
     }
 
+    @Data
+    static class InputBody{
+        private String name;
+        private List<String> list;
+
+    }
 
 
 }
