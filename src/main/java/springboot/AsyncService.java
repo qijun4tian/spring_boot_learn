@@ -10,6 +10,6 @@ import org.springframework.stereotype.Service;
 public class AsyncService {
     @Async(value = "testExecutor")  //如果不指定名字，会使用缺省的“asyncExecutor”
     public void testAsyncService() {
-        System.out.println("test in thread pool "+Thread.currentThread());
+        System.out.println("test in thread pool " + Thread.currentThread());
     }
 }

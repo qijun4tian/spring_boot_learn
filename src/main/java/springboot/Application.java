@@ -1,25 +1,18 @@
 package springboot;
 
-import javafx.scene.media.SubtitleTrack;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springboot.config.PropertiesConfig;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Created by qijun123 on 2018/1/16.
@@ -27,7 +20,8 @@ import java.util.Optional;
 
 @SpringBootApplication
 @RestController
-@ComponentScan(basePackages = { "springboot" })
+@Slf4j
+@ComponentScan(basePackages = {"springboot"})
 public class Application {
     @Autowired
     private PropertiesConfig propertiesConfig;
@@ -36,22 +30,26 @@ public class Application {
 
     @RequestMapping("/")
     public String index() {
-        return "Spring Boot Application..."+propertiesConfig.getName() ;
+        log.info("test log4j2 test log4j2 test log4j2");
+        return "Spring Boot Application..." + propertiesConfig.getName();
     }
 
     @RequestMapping("/testThreadPoll")
     public void testThreadPoll() {
         asyncService.testAsyncService();
     }
+
     @RequestMapping("/testMap")
-    public void testMap(@RequestBody Map<String,Object> map){
-        System.out.println(map.get("name")+"   "+map.get("list"));
+    public void testMap(@RequestBody Map<String, Object> map) {
+        log.info("test log4j2 test log4j2 test log4j2");
+        System.out.println(map.get("name") + "   " + map.get("list"));
     }
 
     @RequestMapping("/testRequestBody")
-    public void testMap(@RequestBody InputBody input){
-        System.out.println(input.getName()+"   "+input.getName());
+    public void testMap(@RequestBody InputBody input) {
+        System.out.println(input.getName() + "   " + input.getName());
     }
+
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
 
@@ -62,7 +60,7 @@ public class Application {
     }
 
     @Data
-    static class InputBody{
+    static class InputBody {
         private String name;
         private List<String> list;
 

@@ -14,8 +14,9 @@ import springboot.AsyncService;
 public class AsyncTest {
     @Autowired
     private AsyncService asyncService;
+
     @Test
-    public void testAsync(){
+    public void testAsync() {
         asyncService.testAsyncService();
     }
 

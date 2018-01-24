@@ -1,6 +1,5 @@
 package springboot;
 
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,6 +16,6 @@ public class Receiver {
     }
 
     public void receive2(String in) throws InterruptedException {
-        System.out.println("Receiver in message"+in);
+        System.out.println("Receiver in message" + in);
     }
 }

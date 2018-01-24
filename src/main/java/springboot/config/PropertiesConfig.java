@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @ConfigurationProperties(prefix = "springboot")
 public class PropertiesConfig {
-//    private String name = "123";
+    //    private String name = "123";
     private String host = "localhost";
     private int port = 15672;
 
@@ -22,7 +22,6 @@ public class PropertiesConfig {
     private String password;
 
     private String virtualhost = "/";
-
 
 
 }

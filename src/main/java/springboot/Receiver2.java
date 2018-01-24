@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class Receiver2 {
     @RabbitListener(queues = "${rabbitConfiguration.queue}", containerFactory = "myContainerFactory")
-    public void processMessage(String msg){
+    public void processMessage(String msg) {
         System.out.println("Receiver2 got message" + msg);
     }
 }

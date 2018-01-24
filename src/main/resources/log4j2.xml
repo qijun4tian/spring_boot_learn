@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--启动项设置为 trace，加载 springboot 启动内部各种详细输出-->
+<Configuration status="trace">
+    <Appenders>
+        <!--添加一个控制台追加器-->
+        <Console name="Console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout>
+                <pattern>[%-5p] %d %c - %m%n</pattern>
+            </PatternLayout>
+        </Console>
+        <!--添加一个文本追加器，文件位于根目录下，名为log.log-->
+        <File name="File" fileName="log.log">
+            <PatternLayout>
+                <pattern>[%-5p] %d %c - %m%n</pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <Loggers>
+
+        <!--根记录全部输出到控制台上-->
+        <Root level="info">
+            <AppenderRef ref="Console" />
+        </Root>
+    </Loggers>
+</Configuration>

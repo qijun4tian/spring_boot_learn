@@ -1,20 +1,18 @@
 package springboot.config;
 
-import javafx.css.CssMetaData;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.ExchangeBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import springboot.Receiver;
 
 /**
  * 角色表Service
@@ -27,8 +25,8 @@ public class RabbitMQConfig {
     private PropertiesConfig propertiesConfig;
 
     public static final String QUEUE_NAME = "first_queue";
-    public static final String  ROUTER_KEY_1 = "*.orange.*";
-    public static final String  ROUTER_KEY_2 = "*.apple.*";
+    public static final String ROUTER_KEY_1 = "*.orange.*";
+    public static final String ROUTER_KEY_2 = "*.apple.*";
     public static final String QUEUE_EXCHANGE_NAME = "first_exchange";
 
 
@@ -42,10 +40,11 @@ public class RabbitMQConfig {
         cachingConnectionFactory.setVirtualHost("/");
         return cachingConnectionFactory;
     }
+
     @Bean
     public RabbitAdmin rabbitAdmin() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitConnectionFactory());
-        TopicExchange topicExchange =(TopicExchange)ExchangeBuilder.topicExchange(QUEUE_EXCHANGE_NAME).durable(true).build();
+        TopicExchange topicExchange = (TopicExchange) ExchangeBuilder.topicExchange(QUEUE_EXCHANGE_NAME).durable(true).build();
         rabbitAdmin.declareExchange(topicExchange);
         Queue firstQueue = new Queue(QUEUE_NAME);
         rabbitAdmin.declareQueue(firstQueue);
@@ -58,7 +57,7 @@ public class RabbitMQConfig {
         return new RabbitTemplate(rabbitConnectionFactory());
     }
 
-  // 方式1
+    // 方式1
 //    @Bean
 //    MessageListenerAdapter listenerAdapter(Receiver receiver) {
 //        return new MessageListenerAdapter(receiver, "receive2");
