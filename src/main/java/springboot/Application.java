@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import springboot.config.PropertiesConfig;
 
-
 import java.util.List;
 import java.util.Map;
 
@@ -34,19 +33,20 @@ public class Application {
     @Autowired
     private AsyncService asyncService;
 
-    @RequestMapping(value = "/",method = RequestMethod.GET)
+    @RequestMapping(value = "/", method = RequestMethod.GET)
     @ApiOperation(value = "主页")
     public String index() {
         log.info("test log4j2 test log4j2 test log4j2");
         return "Spring Boot Application..." + propertiesConfig.getName();
     }
 
-    @RequestMapping(value = "/testThreadPoll",method = RequestMethod.GET)
+    @RequestMapping(value = "/testThreadPoll", method = RequestMethod.GET)
     public void testThreadPoll() {
         asyncService.testAsyncService();
     }
+
     @ApiOperation(value = "测试接口")
-    @ApiImplicitParam(dataType = "map",name = "map", required = true)
+    @ApiImplicitParam(dataType = "map", name = "map", required = true)
     @RequestMapping(value = "/testMap", method = RequestMethod.POST)
     public void testMap(@RequestBody Map<String, Object> map) {
         log.info("test log4j2 test log4j2 test log4j2");
