@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springboot.config.PropertiesConfig;
 
+
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +44,8 @@ public class Application {
     public void testMap(@RequestBody Map<String, Object> map) {
         log.info("test log4j2 test log4j2 test log4j2");
         System.out.println(map.get("name") + "   " + map.get("list"));
+        System.out.println(map.get("list") instanceof List);
+        System.out.println(map.get("list").getClass());
     }
 
     @RequestMapping("/testRequestBody")
