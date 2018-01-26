@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author 祁军
  */
-@Service
+//@Service
 public class Receiver2 {
     @RabbitListener(queues = "${rabbitConfiguration.queue}", containerFactory = "myContainerFactory")
     public void processMessage(String msg) {

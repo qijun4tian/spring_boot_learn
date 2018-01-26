@@ -16,6 +16,7 @@ public class Receiver {
     }
 
     public void receive2(String in) throws InterruptedException {
+
         System.out.println("Receiver in message" + in);
     }
 }

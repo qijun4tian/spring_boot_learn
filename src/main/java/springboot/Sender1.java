@@ -42,11 +42,11 @@ public class Sender1 {
         //先发送一条正确的消息
         CorrelationData correlationData1 = new CorrelationData(UUID.randomUUID().toString());
         System.out.println("correlationData1 = "+ correlationData1);
-//        rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_EXCHANGE_NAME, "aaa.orange.bbb", "hello,world1 0", correlationData1);
+       rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_EXCHANGE_NAME, "aaa.orange.bbb", "hello,world1 0", correlationData1);
         //在发送一条交换机错误的消息
 //        rabbitTemplate.convertAndSend("测试交换机名", "aaa.orange.ccc", "测试错误的交换机名", new CorrelationData(UUID.randomUUID().toString()));
         //正确的交换机错误的队列
-        rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_EXCHANGE_NAME, "1111111", "测试错误的队列名", new CorrelationData(UUID.randomUUID().toString()));
+//        rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_EXCHANGE_NAME, "1111111", "测试错误的队列名", new CorrelationData(UUID.randomUUID().toString()));
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
