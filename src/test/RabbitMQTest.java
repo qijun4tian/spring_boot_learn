@@ -24,8 +24,8 @@ public class RabbitMQTest {
     @Test
     public void send() throws Exception {
         sender.send();
-        sender1.send();
-        Thread.sleep(20000);
+//        sender1.send();
+       Thread.sleep(20000);
     }
 
 }

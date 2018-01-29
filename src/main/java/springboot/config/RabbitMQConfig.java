@@ -3,6 +3,7 @@ package springboot.config;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -11,11 +12,17 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import springboot.Receiver;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 角色表Service
@@ -30,9 +37,10 @@ public class RabbitMQConfig {
     private RabbitMqProperties rabbitMqProperties;
 
     public static final String QUEUE_NAME = "first_queue";
+    public static final String QUEUE_A = "queue_a";
     public static final String ROUTER_KEY_1 = "*.orange.*";
-    public static final String ROUTER_KEY_2 = "*.apple.*";
-    public static final String QUEUE_EXCHANGE_NAME = "first_exchange";
+    //    public static final String ROUTER_KEY_2 = "*.apple.*";
+    public static final String EXCHANGE_NAME = "first_exchange";
 
 
     @Bean
@@ -47,14 +55,21 @@ public class RabbitMQConfig {
         return cachingConnectionFactory;
     }
 
+
     @Bean
     public RabbitAdmin rabbitAdmin() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitConnectionFactory());
-        TopicExchange topicExchange = (TopicExchange) ExchangeBuilder.topicExchange(QUEUE_EXCHANGE_NAME).durable(true).build();
+        TopicExchange topicExchange = (TopicExchange) ExchangeBuilder.topicExchange(EXCHANGE_NAME).durable(true).build();
+        Queue deadLetterQueue = new Queue("dead_queue", true);
+        rabbitAdmin.declareQueue(deadLetterQueue);
         rabbitAdmin.declareExchange(topicExchange);
-        Queue firstQueue = new Queue(QUEUE_NAME);
+        Map<String, Object> args = new HashMap<String, Object>();
+        args.put("x-dead-letter-exchange", EXCHANGE_NAME);
+        args.put("x-dead-letter-routing-key", "dead.queue");
+        Queue firstQueue = new Queue(QUEUE_A, true, false, false, args);
         rabbitAdmin.declareQueue(firstQueue);
         rabbitAdmin.declareBinding(BindingBuilder.bind(firstQueue).to(topicExchange).with(ROUTER_KEY_1));
+        rabbitAdmin.declareBinding(BindingBuilder.bind(deadLetterQueue).to(topicExchange).with("dead.queue"));
         return rabbitAdmin;
     }
 
@@ -62,6 +77,33 @@ public class RabbitMQConfig {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public RabbitTemplate rabbitTemplate() {
         return new RabbitTemplate(rabbitConnectionFactory());
+    }
+
+    @Bean
+    public RabbitTemplate MyRabbitTemplate() {
+        RabbitTemplate rabbitTemplate = new  RabbitTemplate(rabbitConnectionFactory());
+        rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
+            if (!ack) {
+                log.info("sender not send message to the right exchange" + " correlationData=" + correlationData + " ack=" + ack + " cause" + cause);
+            } else {
+                log.info("sender send message to the right exchange" + " correlationData=" + correlationData + " ack=" + ack + " cause" + cause);
+            }
+        });
+        //消息是否到达正确的消息队列，如果没有会把消息返回
+        rabbitTemplate.setReturnCallback((message, replyCode, replyText, tmpExchange, tmpRoutingKey) -> {
+            log.info("Sender send message failed: " + message + " " + replyCode + " " + replyText + " " + tmpExchange + " " + tmpRoutingKey);
+            //try to resend msg
+        });
+
+        RetryTemplate retryTemplate = new RetryTemplate();
+        ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+        backOffPolicy.setInitialInterval(500);
+        backOffPolicy.setMultiplier(10.0);
+        backOffPolicy.setMaxInterval(10000);
+        retryTemplate.setBackOffPolicy(backOffPolicy);
+        rabbitTemplate.setRetryTemplate(retryTemplate);
+        rabbitTemplate.setMandatory(true);
+        return rabbitTemplate;
     }
 
     // 方式1
@@ -80,7 +122,6 @@ public class RabbitMQConfig {
         container.setConcurrentConsumers(1);
         container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         container.setMessageListener(new ChannelAwareMessageListener() {
-
             @Override
             public void onMessage(Message message, Channel channel) throws Exception {
                 byte[] body = message.getBody();
@@ -100,22 +141,25 @@ public class RabbitMQConfig {
     }
 
 
-// 方式2
-//    @Bean
-//    public SimpleRabbitListenerContainerFactory myContainerFactory(
-//            SimpleRabbitListenerContainerFactoryConfigurer configurer,
-//            ConnectionFactory connectionFactory) {
-//        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-//
-//        factory.setPrefetchCount(1);
-//        factory.setMaxConcurrentConsumers(1);
-//        factory.setConcurrentConsumers(1);
+    // 方式2
+    @Bean
+    public SimpleRabbitListenerContainerFactory myContainerFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer
+    ) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+
+        factory.setPrefetchCount(1);
+        factory.setMaxConcurrentConsumers(1);
+        factory.setConcurrentConsumers(1);
 //        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
-//
-//
-//        configurer.configure(factory, connectionFactory);
-//        return factory;
-//    }
+        factory.setDefaultRequeueRejected(true);
+//        factory.setErrorHandler(new ConditionalRejectingErrorHandler(
+//                t -> t instanceof ListenerExecutionFailedException && t.getCause() instanceof MyException));
+
+
+        configurer.configure(factory, rabbitConnectionFactory());
+        return factory;
+    }
 
 
 }

@@ -44,10 +44,7 @@ public class Sender {
         backOffPolicy.setMaxInterval(10000);
         retryTemplate.setBackOffPolicy(backOffPolicy);
         rabbitTemplate.setRetryTemplate(retryTemplate);
-
         rabbitTemplate.setMandatory(true);
-
-
         this.rabbitTemplate = rabbitTemplate;
 
     }
@@ -56,7 +53,7 @@ public class Sender {
         System.out.println("sender is sending message");
         //先发送一条正确的消息
         // 不要三条消息一起发送
-        rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_EXCHANGE_NAME, "aaa.orange.bbb", "hello,world1 2", new CorrelationData(UUID.randomUUID().toString()));
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, "aaa.orange.bbb", "hello,world1 2", new CorrelationData(UUID.randomUUID().toString()));
 
         //在发送一条交换机错误的消息
         // rabbitTemplate.convertAndSend("测试交换机名", "aaa.orange.ccc", "测试错误的交换机名", new CorrelationData(UUID.randomUUID().toString()));
