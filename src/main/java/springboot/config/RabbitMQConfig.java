@@ -52,6 +52,7 @@ public class RabbitMQConfig {
         cachingConnectionFactory.setPassword(rabbitMqProperties.getPassword());
         cachingConnectionFactory.setVirtualHost(rabbitMqProperties.getVirtualhost());
         cachingConnectionFactory.setPublisherConfirms(true);
+        cachingConnectionFactory.setPublisherReturns();
         return cachingConnectionFactory;
     }
 
@@ -66,6 +67,7 @@ public class RabbitMQConfig {
         Map<String, Object> args = new HashMap<String, Object>();
         args.put("x-dead-letter-exchange", EXCHANGE_NAME);
         args.put("x-dead-letter-routing-key", "dead.queue");
+//        args.put("x-message-ttl", 20000);
         Queue firstQueue = new Queue(QUEUE_A, true, false, false, args);
         rabbitAdmin.declareQueue(firstQueue);
         rabbitAdmin.declareBinding(BindingBuilder.bind(firstQueue).to(topicExchange).with(ROUTER_KEY_1));

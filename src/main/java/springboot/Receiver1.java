@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class Receiver1 {
     @RabbitListener(queues = "queue_a", containerFactory = "myContainerFactory")
     public void processMessage (String msg) throws Exception {
-        Thread.sleep(100000);
+//        Thread.sleep(100000);
         System.out.println("Receiver1 got message" + msg);
         throw new AmqpRejectAndDontRequeueException("11111111");
     }
