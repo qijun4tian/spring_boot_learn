@@ -14,6 +14,7 @@ public class Receiver1 {
     public void processMessage (String msg) throws Exception {
 //        Thread.sleep(100000);
         System.out.println("Receiver1 got message" + msg);
-        throw new AmqpRejectAndDontRequeueException("11111111");
+//        throw new AmqpRejectAndDontRequeueException("11111111");
+        throw new MyException("my exception to test handler error");
     }
 }

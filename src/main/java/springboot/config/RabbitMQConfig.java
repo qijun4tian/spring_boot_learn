@@ -8,6 +8,7 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import springboot.Receiver;
+import springboot.utils.MessageFatalExceptionStrategy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,7 +54,8 @@ public class RabbitMQConfig {
         cachingConnectionFactory.setPassword(rabbitMqProperties.getPassword());
         cachingConnectionFactory.setVirtualHost(rabbitMqProperties.getVirtualhost());
         cachingConnectionFactory.setPublisherConfirms(true);
-        cachingConnectionFactory.setPublisherReturns();
+        cachingConnectionFactory.setPublisherReturns(true);
+
         return cachingConnectionFactory;
     }
 
@@ -81,66 +84,39 @@ public class RabbitMQConfig {
         return new RabbitTemplate(rabbitConnectionFactory());
     }
 
-    @Bean
-    public RabbitTemplate MyRabbitTemplate() {
-        RabbitTemplate rabbitTemplate = new  RabbitTemplate(rabbitConnectionFactory());
-        rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
-            if (!ack) {
-                log.info("sender not send message to the right exchange" + " correlationData=" + correlationData + " ack=" + ack + " cause" + cause);
-            } else {
-                log.info("sender send message to the right exchange" + " correlationData=" + correlationData + " ack=" + ack + " cause" + cause);
-            }
-        });
-        //消息是否到达正确的消息队列，如果没有会把消息返回
-        rabbitTemplate.setReturnCallback((message, replyCode, replyText, tmpExchange, tmpRoutingKey) -> {
-            log.info("Sender send message failed: " + message + " " + replyCode + " " + replyText + " " + tmpExchange + " " + tmpRoutingKey);
-            //try to resend msg
-        });
-
-        RetryTemplate retryTemplate = new RetryTemplate();
-        ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
-        backOffPolicy.setInitialInterval(500);
-        backOffPolicy.setMultiplier(10.0);
-        backOffPolicy.setMaxInterval(10000);
-        retryTemplate.setBackOffPolicy(backOffPolicy);
-        rabbitTemplate.setRetryTemplate(retryTemplate);
-        rabbitTemplate.setMandatory(true);
-        return rabbitTemplate;
-    }
-
     // 方式1
     @Bean
     MessageListenerAdapter listenerAdapter(Receiver receiver) {
         return new MessageListenerAdapter(receiver, "receive2");
     }
 
-    @Bean
-    SimpleMessageListenerContainer container() {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        container.setConnectionFactory(rabbitConnectionFactory());
-        container.setQueueNames(QUEUE_NAME);
-        container.setPrefetchCount(1);
-        container.setMaxConcurrentConsumers(1);
-        container.setConcurrentConsumers(1);
-        container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
-        container.setMessageListener(new ChannelAwareMessageListener() {
-            @Override
-            public void onMessage(Message message, Channel channel) throws Exception {
-                byte[] body = message.getBody();
-                try {
-                    log.info("receive msg: " + new String(body));
-                    Thread.sleep(10000);
-                    //do something
-                } catch (Exception e) {
-                } finally {
-                    channel.basicAck(message.getMessageProperties().getDeliveryTag(), false); //确认消息成功消费
-                }
-
-            }
-
-        });
-        return container;
-    }
+//    @Bean
+//    SimpleMessageListenerContainer container() {
+//        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+//        container.setConnectionFactory(rabbitConnectionFactory());
+//        container.setQueueNames(QUEUE_NAME);
+//        container.setPrefetchCount(1);
+//        container.setMaxConcurrentConsumers(1);
+//        container.setConcurrentConsumers(1);
+//        container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+//        container.setMessageListener(new ChannelAwareMessageListener() {
+//            @Override
+//            public void onMessage(Message message, Channel channel) throws Exception {
+//                byte[] body = message.getBody();
+//                try {
+//                    log.info("receive msg: " + new String(body));
+//                    Thread.sleep(10000);
+//                    //do something
+//                } catch (Exception e) {
+//                } finally {
+//                    channel.basicAck(message.getMessageProperties().getDeliveryTag(), false); //确认消息成功消费
+//                }
+//
+//            }
+//
+//        });
+//        return container;
+//    }
 
 
     // 方式2
@@ -155,8 +131,7 @@ public class RabbitMQConfig {
         factory.setConcurrentConsumers(1);
 //        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         factory.setDefaultRequeueRejected(true);
-//        factory.setErrorHandler(new ConditionalRejectingErrorHandler(
-//                t -> t instanceof ListenerExecutionFailedException && t.getCause() instanceof MyException));
+        factory.setErrorHandler(new ConditionalRejectingErrorHandler(new MessageFatalExceptionStrategy()));
 
 
         configurer.configure(factory, rabbitConnectionFactory());

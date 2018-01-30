@@ -33,6 +33,7 @@ public class Sender1 {
             log.info("Sender1 send message failed: " + message + " " + replyCode + " " + replyText + " " + tmpExchange + " " + tmpRoutingKey);
             //try to resend msg
         });
+
         rabbitTemplate.setMandatory(true);
         this.rabbitTemplate = rabbitTemplate;
     }

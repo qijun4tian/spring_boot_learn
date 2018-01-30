@@ -45,6 +45,7 @@ public class Sender {
         retryTemplate.setBackOffPolicy(backOffPolicy);
         rabbitTemplate.setRetryTemplate(retryTemplate);
         rabbitTemplate.setMandatory(true);
+
         this.rabbitTemplate = rabbitTemplate;
 
     }
@@ -53,16 +54,32 @@ public class Sender {
         System.out.println("sender is sending message");
         //先发送一条正确的消息
         // 不要三条消息一起发送
-        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, "aaa.orange.bbb", "hello,world1 2", new CorrelationData(UUID.randomUUID().toString()));
+
+        String uuid1 = UUID.randomUUID().toString();
+        String uuid2 = UUID.randomUUID().toString();
+        String uuid3 = UUID.randomUUID().toString();
+        System.out.println("UUID="+uuid1+"---"+uuid2+"---"+uuid3);
+
+
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, "aaa.orange.bbb", "hello,world1 2", new CorrelationData(uuid1));
+
+
+//        RabbitMQUtils.sendMessage("这是一个测试错误交换器名","错误的交换机名","错误的routing_key");
+//
+//        RabbitMQUtils.sendMessage("这是一个测试错误routingkey",RabbitMQConfig.EXCHANGE_NAME,"错误的routing_key");
+
 
         //在发送一条交换机错误的消息
-        // rabbitTemplate.convertAndSend("测试交换机名", "aaa.orange.ccc", "测试错误的交换机名", new CorrelationData(UUID.randomUUID().toString()));
+//
+      rabbitTemplate.convertAndSend("测试交换机名", "aaa.orange.ccc", "测试错误的交换机名", new CorrelationData(uuid2));
         //正确的交换机错误的队列
-        //rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_EXCHANGE_NAME, "1111111", "测试错误的队列名", new CorrelationData(UUID.randomUUID().toString()));
+        rabbitTemplate.convertAndSend("测试交换机名", "1111111", "测试错误的队列名", new CorrelationData(uuid3));
+
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
     }
 }
