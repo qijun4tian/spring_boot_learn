@@ -14,5 +14,5 @@ public class ResendCacheMessage {
     String exchargeName;
     String routingKey;
     Boolean hasSend;
-    String correlationDataID;
+    String messageID;
 }

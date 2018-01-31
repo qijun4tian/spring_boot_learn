@@ -134,6 +134,7 @@ public class RabbitMQConfig {
         factory.setErrorHandler(new ConditionalRejectingErrorHandler(new MessageFatalExceptionStrategy()));
 
 
+
         configurer.configure(factory, rabbitConnectionFactory());
         return factory;
     }

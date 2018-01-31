@@ -12,5 +12,5 @@ public class CacheMessage {
     String messageBody;
     String exchargeName;
     String routingKey;
-    String correlationDataID;
+    String messageID;
 }

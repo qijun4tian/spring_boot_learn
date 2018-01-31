@@ -1,8 +1,10 @@
 package springboot;
 
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
+
 
 /**
  * @author 祁军
@@ -11,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class Receiver1 {
     @RabbitListener(queues = "queue_a", containerFactory = "myContainerFactory")
-    public void processMessage (String msg) throws Exception {
+    public void processMessage (Message msg) throws Exception {
 //        Thread.sleep(100000);
         System.out.println("Receiver1 got message" + msg);
 //        throw new AmqpRejectAndDontRequeueException("11111111");

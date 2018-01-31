@@ -1,8 +1,8 @@
 package springboot;
 
-import lombok.Builder;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePropertiesBuilder;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import springboot.config.RabbitMqProperties;
 import springboot.pojo.CacheMessage;
 import springboot.pojo.ResendCacheMessage;
+import springboot.schedule.ResendTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,9 @@ public class RabbitMQUtils {
     @Autowired
     private static RabbitMqProperties rabbitMqProperties;
 
+    @Autowired
+    private static ResendTask resendTask;
+
     public static RabbitTemplate utilsSendTemplate;
 
     private static RabbitTemplate utilsResendTemplate;
@@ -40,10 +44,12 @@ public class RabbitMQUtils {
     public static final Map<String, CacheMessage> cacheMap = new HashMap<>();
 
 
-    public static void init() {
+    public static void init(RabbitMqProperties rabbitMqProperties) {
         if (!hasInit) {
             synchronized (RabbitMQUtils.class) {
                 if (!hasInit) {
+                    resendTask = new ResendTask();
+                    resendTask.startCron();
                     CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
                     cachingConnectionFactory.setHost("localhost");
                     cachingConnectionFactory.setPort(5672);
@@ -70,7 +76,7 @@ public class RabbitMQUtils {
                                 ResendCacheMessage resendCacheMessage = ResendCacheMessage.builder().messageBody(cacheMessage.getMessageBody())
                                         .exchargeName(cacheMessage.getExchargeName())
                                         .routingKey(cacheMessage.getRoutingKey())
-                                        .resendTimes(0).hasSend(false).correlationDataID(cacheMessage.getCorrelationDataID()).build();
+                                        .resendTimes(0).hasSend(false).messageID(cacheMessage.getMessageID()).build();
                                 ResendcacheMap.put(correlationData.getId(), resendCacheMessage);
                             }
 
@@ -79,20 +85,20 @@ public class RabbitMQUtils {
                     //消息是否到达正确的消息队列，如果没有会把消息返回
                     utilsSendTemplate.setReturnCallback((message, replyCode, replyText, tmpExchange, tmpRoutingKey) -> {
                         log.info("Sender send message failed: " + message + " " + replyCode + " " + replyText + " " + tmpExchange + " " + tmpRoutingKey);
-                        String correlationDataID = message.getMessageProperties().getCorrelationIdString();
-                        if (ResendcacheMap.containsKey(correlationDataID)) {
-                            if (ResendcacheMap.get(correlationDataID).getResendTimes().equals(3) && ResendcacheMap.get(correlationDataID).getHasSend().equals(true)) {
+                        String messageId = message.getMessageProperties().getMessageId();
+                        if (ResendcacheMap.containsKey(messageId)) {
+                            if (ResendcacheMap.get(messageId).getResendTimes().equals(3) && ResendcacheMap.get(messageId).getHasSend().equals(true)) {
                                 // do nothing just log error
                                 log.error("try three times still not send message to the right route");
 
                             } else {
-                                ResendcacheMap.get(correlationDataID).setHasSend(false);
+                                ResendcacheMap.get(messageId).setHasSend(false);
                             }
                         } else {
-                            ResendCacheMessage resendMessage = ResendCacheMessage.builder().messageBody(message.getBody().toString())
+                            ResendCacheMessage resendMessage = ResendCacheMessage.builder().messageBody(new String(message.getBody()))
                                     .exchargeName(tmpExchange)
-                                    .routingKey(tmpRoutingKey).resendTimes(0).hasSend(false).correlationDataID(correlationDataID).build();
-                            ResendcacheMap.put(correlationDataID, resendMessage);
+                                    .routingKey(tmpRoutingKey).resendTimes(0).hasSend(false).messageID(messageId).build();
+                            ResendcacheMap.put(messageId, resendMessage);
                         }
                         //try to resend msg
                     });
@@ -112,14 +118,12 @@ public class RabbitMQUtils {
     }
 
     public static void sendMessage(String message, String exchargeName, String routingKey) {
-        String correlationDataId = UUID.randomUUID().toString();
-        cacheMap.put(correlationDataId, CacheMessage.builder().messageBody(message).exchargeName(exchargeName).routingKey(routingKey).build());
-        utilsSendTemplate.convertAndSend(exchargeName, routingKey, message, new CorrelationData(correlationDataId));
+        String messageID = UUID.randomUUID().toString();
+        cacheMap.put(messageID, CacheMessage.builder().messageBody(message).exchargeName(exchargeName).routingKey(routingKey).build());
+        utilsSendTemplate.convertAndSend(exchargeName, routingKey, new Message(message.getBytes(), MessagePropertiesBuilder.newInstance().setMessageId(messageID).build()), new CorrelationData(messageID));
+
+
     }
-
-
-
-
 
 
 //    public static void sendMessage(String exchangeName, String queueName, Object Message) {
