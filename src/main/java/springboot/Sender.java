@@ -41,6 +41,7 @@ public class Sender {
             log.info("Sender send message failed: " + message + " " + replyCode + " " + replyText + " " + tmpExchange + " " + tmpRoutingKey);
             //try to resend msg
         });
+//        rabbitTemplate.setChannelTransacted(true);
 
         RetryTemplate retryTemplate = new RetryTemplate();
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
@@ -50,6 +51,7 @@ public class Sender {
         retryTemplate.setBackOffPolicy(backOffPolicy);
         rabbitTemplate.setRetryTemplate(retryTemplate);
         rabbitTemplate.setMandatory(true);
+
 
         this.rabbitTemplate = rabbitTemplate;
 
@@ -69,10 +71,24 @@ public class Sender {
 //        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, "aaa.orange.bbb", "hello,world1 2", new CorrelationData(uuid1));
 //        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, "11111", "hello,world1 2", new CorrelationData(uuid1));
         byte [] messageBody = "hello,world1 2".getBytes();
-        rabbitTemplate.send(RabbitMQConfig.EXCHANGE_NAME, "aaa.orange.bbb",new Message(messageBody, MessagePropertiesBuilder.newInstance().setCorrelationIdString(uuid3).
-                        setMessageId(uuid3).setContentType("text/x-json").build()),
-                new CorrelationData(uuid3)
-                );
+//        rabbitTemplate.send(RabbitMQConfig.EXCHANGE_NAME, "aaa.orange.bbb",new Message(messageBody, MessagePropertiesBuilder.newInstance().setCorrelationIdString(uuid3).
+//                        setMessageId(uuid3).setContentType("text/x-json").build()),
+//                new CorrelationData(uuid3)
+//                );
+
+//        try {
+//            rabbitTemplate.send("111111", "aaa.orange.bbb", new Message(messageBody, MessagePropertiesBuilder.newInstance().setCorrelationIdString(uuid3).
+//                            setMessageId(uuid3).setContentType("text/x-json").build()),
+//                    new CorrelationData(uuid3));
+//            rabbitTemplate.send(RabbitMQConfig.EXCHANGE_NAME, "aaa.orange.bbb", new Message(messageBody, MessagePropertiesBuilder.newInstance().setCorrelationIdString(uuid3).
+//                            setMessageId(uuid3).setContentType("text/x-json").build()),
+//                    new CorrelationData(uuid3));
+//            rabbitTemplate.send(RabbitMQConfig.EXCHANGE_NAME, "aaa.orange.bbb", new Message(messageBody, MessagePropertiesBuilder.newInstance().setCorrelationIdString(uuid3).
+//                            setMessageId(uuid3).setContentType("text/x-json").build()),
+//                    new CorrelationData(uuid3));
+//        }catch (Exception e){
+//            log.info("commit error");
+//        }
 
 
 //        RabbitMQUtils.sendMessage("这是一个测试错误交换器名","错误的交换机名","错误的routing_key");
@@ -84,7 +100,11 @@ public class Sender {
 //
 //      rabbitTemplate.convertAndSend("测试交换机名", "aaa.orange.ccc", "测试错误的交换机名", new CorrelationData(uuid2));
         //正确的交换机错误的队列
-//        rabbitTemplate.convertAndSend("测试交换机名", "1111111", "测试错误的队列名", new CorrelationData(uuid3));
+//       rabbitTemplate.convertAndSend("测试交换机名", "1111111", "测试错误的队列名", new CorrelationData(uuid3));
+
+
+        rabbitTemplate.convertAndSend("fanout","","fanout 交换机");
+        rabbitTemplate.convertAndSend("direct","temp.queue.1","direct 交换机");
 
         try {
             Thread.sleep(1000);

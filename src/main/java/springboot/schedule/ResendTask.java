@@ -22,17 +22,11 @@ import java.util.stream.Collectors;
 public class ResendTask {
 
     private ScheduledFuture<?> future;
-
-
     public void startCron() {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.initialize();
         future = threadPoolTaskScheduler.schedule(new resendJob(), new CronTrigger("0/2 * * * * *"));
     }
-
-
-
-
 
     public void stopCron() {
         if (future != null) {

@@ -72,7 +72,7 @@ public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-        RabbitMQUtils.init();
+//        RabbitMQUtils.init();
 
 //        Optional<String> optional = Optional.ofNullable(null);
 //        System.out.println(optional.map(l->"123").orElse("345"));

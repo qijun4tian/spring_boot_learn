@@ -36,12 +36,19 @@ public class RabbitMQUtils {
 
     public static RabbitTemplate utilsSendTemplate;
 
-    private static RabbitTemplate utilsResendTemplate;
+//    private static RabbitTemplate utilsResendTemplate;
 
     private static volatile boolean hasInit = false;
 
     public static final Map<String, ResendCacheMessage> ResendcacheMap = new ConcurrentHashMap<>();
     public static final Map<String, CacheMessage> cacheMap = new HashMap<>();
+
+    public static CachingConnectionFactory getCachingConfirmConnectionFactory(RabbitMqProperties rabbitMqProperties){
+        CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
+        cachingConnectionFactory.setPublisherConfirms(true);
+        cachingConnectionFactory.setPublisherReturns(true);
+        return cachingConnectionFactory;
+    }
 
 
     public static void init(RabbitMqProperties rabbitMqProperties) {

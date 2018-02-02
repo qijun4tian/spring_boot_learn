@@ -1,15 +1,12 @@
 package springboot.config;
 
-import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -18,8 +15,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.support.RetryTemplate;
 import springboot.Receiver;
 import springboot.utils.MessageFatalExceptionStrategy;
 
@@ -55,7 +50,6 @@ public class RabbitMQConfig {
         cachingConnectionFactory.setVirtualHost(rabbitMqProperties.getVirtualhost());
         cachingConnectionFactory.setPublisherConfirms(true);
         cachingConnectionFactory.setPublisherReturns(true);
-
         return cachingConnectionFactory;
     }
 
@@ -64,15 +58,30 @@ public class RabbitMQConfig {
     public RabbitAdmin rabbitAdmin() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitConnectionFactory());
         TopicExchange topicExchange = (TopicExchange) ExchangeBuilder.topicExchange(EXCHANGE_NAME).durable(true).build();
+        FanoutExchange fanoutExchange = (FanoutExchange) ExchangeBuilder.fanoutExchange("fanout").durable(true).build();
+        DirectExchange directExchange = (DirectExchange) ExchangeBuilder.directExchange("direct").durable(true).build();
         Queue deadLetterQueue = new Queue("dead_queue", true);
         rabbitAdmin.declareQueue(deadLetterQueue);
         rabbitAdmin.declareExchange(topicExchange);
+        rabbitAdmin.declareExchange(fanoutExchange);
+        rabbitAdmin.declareExchange(directExchange);
         Map<String, Object> args = new HashMap<String, Object>();
         args.put("x-dead-letter-exchange", EXCHANGE_NAME);
         args.put("x-dead-letter-routing-key", "dead.queue");
 //        args.put("x-message-ttl", 20000);
         Queue firstQueue = new Queue(QUEUE_A, true, false, false, args);
+
+        Queue tempQueue = new Queue("temp.queue", true, false, false);
+        Queue tempQueue2 = new Queue("temp.queue.2", true, false, false);
+        Queue tempQueue1 = new Queue("temp.queue.1", true, false, false);
+
         rabbitAdmin.declareQueue(firstQueue);
+        rabbitAdmin.declareQueue(tempQueue);
+        rabbitAdmin.declareQueue(tempQueue1);
+        rabbitAdmin.declareQueue(tempQueue2);
+        rabbitAdmin.declareBinding(BindingBuilder.bind(tempQueue).to(fanoutExchange));
+        rabbitAdmin.declareBinding(BindingBuilder.bind(tempQueue2).to(fanoutExchange));
+        rabbitAdmin.declareBinding(BindingBuilder.bind(tempQueue1).to(directExchange).withQueueName());
         rabbitAdmin.declareBinding(BindingBuilder.bind(firstQueue).to(topicExchange).with(ROUTER_KEY_1));
         rabbitAdmin.declareBinding(BindingBuilder.bind(deadLetterQueue).to(topicExchange).with("dead.queue"));
         return rabbitAdmin;
@@ -132,7 +141,6 @@ public class RabbitMQConfig {
 //        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         factory.setDefaultRequeueRejected(true);
         factory.setErrorHandler(new ConditionalRejectingErrorHandler(new MessageFatalExceptionStrategy()));
-
 
 
         configurer.configure(factory, rabbitConnectionFactory());
