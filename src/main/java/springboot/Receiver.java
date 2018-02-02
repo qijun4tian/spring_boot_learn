@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
  * @author 祁军
  * 使用 SimpleMessageListenerContainer 和listenerAdapter方式来接收消息
  */
-@Service
+//@Service
 public class Receiver {
 
     public void receiveMessage(String message) {

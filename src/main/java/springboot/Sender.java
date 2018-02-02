@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
-import springboot.config.RabbitMQConfig;
+//import springboot.config.RabbitMQConfig;
 
 import javax.print.DocFlavor;
 import java.util.UUID;
@@ -20,7 +20,7 @@ import java.util.UUID;
  *
  * @author 祁军
  */
-@Service
+//@Service
 @Slf4j
 public class Sender {
     private RabbitTemplate rabbitTemplate;

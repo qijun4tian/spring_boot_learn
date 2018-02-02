@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * @author 祁军
  */
-@Service
+//@Service
 @Slf4j
 public class Sender1 {
 

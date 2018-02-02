@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
  * @author 祁军
  * 使用 SimpleRabbitListenerContainerFactory 和 @RabbitListener 方式接收mq 的消息
  */
-@Service
+//@Service
 public class Receiver1 {
     @RabbitListener(queues = "queue_a", containerFactory = "myContainerFactory")
     public void processMessage (Message msg) throws Exception {
