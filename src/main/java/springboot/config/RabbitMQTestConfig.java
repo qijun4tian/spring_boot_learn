@@ -2,16 +2,22 @@ package springboot.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
+import springboot.Performance.PerformanceTestConfirmProducer;
+import springboot.utils.MessageFatalExceptionStrategy;
 
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 //@EnableConfigurationProperties(RabbitMqProperties.class)
 @Slf4j
 public class RabbitMQTestConfig {
-    private static AtomicInteger count = new AtomicInteger(0);
+    public static AtomicInteger count = new AtomicInteger(0);
     @Bean
     @Primary
     @Qualifier("confirmConnectionFactory")
@@ -78,17 +84,17 @@ public class RabbitMQTestConfig {
     public RabbitTemplate comfirmRabbitTemplate() {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(confirmConnectionFactory());
         rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
-            if (!ack) {
-                log.info("confirm sender not send message to the right exchange" + " correlationData=" + correlationData + " ack=" + ack + " cause" + cause);
-            } else {
+                    if (!ack) {
+                        log.info("confirm sender not send message to the right exchange" + " correlationData=" + correlationData + " ack=" + ack + " cause" + cause);
+                    } else {
 //                log.info("confirm sender send message to the right exchange" + " correlationData=" + correlationData + " ack=" + ack + " cause" + cause);
-                int i = count.incrementAndGet();
-                if(i == 10000){
-                    log.info("异步的方式接收成功一万条数据");
+                        if (System.currentTimeMillis() < PerformanceTestConfirmProducer.startTime + 1000) {
+                            count.incrementAndGet();
+//                            log.info("get the count "+i);
+                        }
+                    }
                 }
-
-            }
-        });
+        );
         rabbitTemplate.setReturnCallback((message, replyCode, replyText, tmpExchange, tmpRoutingKey) -> {
             System.out.println(message);
             log.info("confirm Sender send message failed: " + message + " " + replyCode + " " + replyText + " " + tmpExchange + " " + tmpRoutingKey);
@@ -111,6 +117,43 @@ public class RabbitMQTestConfig {
         });
         return rabbitTemplate;
 
+    }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory myContainerFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer
+    ) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+
+        factory.setPrefetchCount(1);
+        factory.setMaxConcurrentConsumers(1);
+        factory.setConcurrentConsumers(1);
+//        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        factory.setDefaultRequeueRejected(true);
+        factory.setErrorHandler(new ConditionalRejectingErrorHandler(new MessageFatalExceptionStrategy()));
+
+
+        configurer.configure(factory, transactedConnectionFactory());
+        return factory;
+    }
+
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory myContainerFactory1(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer
+    ) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+
+        factory.setPrefetchCount(1);
+        factory.setMaxConcurrentConsumers(1);
+        factory.setConcurrentConsumers(1);
+//        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        factory.setDefaultRequeueRejected(true);
+        factory.setErrorHandler(new ConditionalRejectingErrorHandler(new MessageFatalExceptionStrategy()));
+
+
+        configurer.configure(factory, confirmConnectionFactory());
+        return factory;
     }
 
 

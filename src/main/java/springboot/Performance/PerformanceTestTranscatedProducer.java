@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author 祁军
@@ -17,29 +20,32 @@ public class PerformanceTestTranscatedProducer {
     @Autowired
     @Qualifier("transactedRabbitTemplate")
     private RabbitTemplate rabbitTemplate;
+    public static long startTime;
 
     public void send() {
-        log.info("事务的方式开始制造字符串");
-        StringBuffer stringBuffer = new StringBuffer();
-        for (int i = 0; i < 50; i++) {
-            stringBuffer.append(UUID.randomUUID().toString());
-        }
-        log.info("stringBuffer=", stringBuffer);
-        log.info("事务的方式制造完毕");
-        log.info("事务的方式开始发送一万条数据");
-        for (int i = 0; i < 10000; i++) {
-            try {
 
-                rabbitTemplate.convertAndSend("direct.excharge", "test.transacted", stringBuffer);
+        log.info("事务的方式开始发送数据");
+        AtomicInteger count  = new AtomicInteger(0) ;
+        ExecutorService service = Executors.newFixedThreadPool(1000);
+        startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() <= startTime + 1000) {
 
-            } catch (Exception e) {
-                log.info("transacted 发送错误");
-            }
+            Runnable runnable = ()-> {
+                try {
+//                log.info("第" + count + "次发送开始");
+                    rabbitTemplate.convertAndSend("direct.excharge", "test.transacted", PerformanceTestConfirmProducer.message);
+
+                } catch (Exception e) {
+                    log.info("transacted 发送错误");
+                }
+                if (System.currentTimeMillis() <= startTime + 1000) {
+                    count.incrementAndGet();
+                }
+            };
+            service.execute(runnable);
         }
-        log.info("事务的方式发送结束");
+        log.info("事务的方式发送结束 总共发送了"+ count);
     }
-
-
 
 
 }
