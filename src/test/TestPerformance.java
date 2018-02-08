@@ -27,27 +27,45 @@ public class TestPerformance {
 
     @Test
     public void send() {
-        performanceTestConfirmProducer.send();
-        log.info("异步方式一秒钟总共发送了多少数据"+ RabbitMQTestConfig.count);
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        performanceTestTranscatedProducer.send();
+
+
+        for (int i = 0; i < 10; i++) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            performanceTestConfirmProducer.send();
+            log.info("异步方式一秒钟总共发送了多少数据" + RabbitMQTestConfig.count);
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            performanceTestTranscatedProducer.send();
 //        try {
 //            Thread.sleep(20000);
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        log.info("异步方式一秒钟总共接收了"+ PerformanceTestComfirmReceiver.confirmReceiveCount+"条数据");
-        log.info("事务的方式一秒钟总共接收了"+ PerformanceTestTranscatedReceiver.transcatedReceiveCount+"条数据");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            log.info("异步方式一秒钟总共接收了" + PerformanceTestComfirmReceiver.confirmReceiveCount + "条数据");
+            log.info("事务的方式一秒钟总共接收了" + PerformanceTestTranscatedReceiver.transcatedReceiveCount + "条数据");
 
+        }
+
+        log.info("异步方式测试10次一秒钟总共发送了多少数据" + RabbitMQTestConfig.count);
+        log.info("同步方式测试10次一秒钟总共发送了多少数据" + PerformanceTestTranscatedProducer.count);
     }
+
+
+
+
+
+
 
 }

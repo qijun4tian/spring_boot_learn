@@ -21,14 +21,14 @@ public class PerformanceTestTranscatedProducer {
     @Qualifier("transactedRabbitTemplate")
     private RabbitTemplate rabbitTemplate;
     public static long startTime;
-
+    public static  AtomicInteger count;
     public void send() {
 
         log.info("事务的方式开始发送数据");
-        AtomicInteger count  = new AtomicInteger(0) ;
-        ExecutorService service = Executors.newFixedThreadPool(1000);
+        count  = new AtomicInteger(0) ;
+        ExecutorService service = Executors.newFixedThreadPool(100);
         startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() <= startTime + 1000) {
+        while (System.currentTimeMillis() <= startTime + Constant.oneSecond) {
 
             Runnable runnable = ()-> {
                 try {
@@ -38,7 +38,7 @@ public class PerformanceTestTranscatedProducer {
                 } catch (Exception e) {
                     log.info("transacted 发送错误");
                 }
-                if (System.currentTimeMillis() <= startTime + 1000) {
+                if (System.currentTimeMillis() <= startTime +  Constant.oneSecond) {
                     count.incrementAndGet();
                 }
             };

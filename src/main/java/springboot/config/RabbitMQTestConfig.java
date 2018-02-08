@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
+import springboot.Performance.Constant;
 import springboot.Performance.PerformanceTestConfirmProducer;
 import springboot.utils.MessageFatalExceptionStrategy;
 
@@ -88,7 +89,7 @@ public class RabbitMQTestConfig {
                         log.info("confirm sender not send message to the right exchange" + " correlationData=" + correlationData + " ack=" + ack + " cause" + cause);
                     } else {
 //                log.info("confirm sender send message to the right exchange" + " correlationData=" + correlationData + " ack=" + ack + " cause" + cause);
-                        if (System.currentTimeMillis() < PerformanceTestConfirmProducer.startTime + 1000) {
+                        if (System.currentTimeMillis() < PerformanceTestConfirmProducer.startTime +  Constant.oneSecond) {
                             count.incrementAndGet();
 //                            log.info("get the count "+i);
                         }

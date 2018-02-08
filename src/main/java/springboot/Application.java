@@ -9,6 +9,7 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import springboot.config.PropertiesConfig;
-import springboot.config.RabbitMQConfig;
+//import springboot.config.RabbitMQConfig;
 
 import java.util.List;
 import java.util.Map;
@@ -65,17 +66,14 @@ public class Application {
         System.out.println(input.getName() + "   " + input.getName());
     }
 
-    @RequestMapping("/testRabbitMQUtil")
-    public void testRabbitMQUtil() {
-        RabbitMQUtils.sendMessage("hello util",RabbitMQConfig.EXCHANGE_NAME,"11111") ;
-    }
+//    @RequestMapping("/testRabbitMQUtil")
+//    public void testRabbitMQUtil() {
+//        RabbitMQUtils.sendMessage("hello util",RabbitMQConfig.EXCHANGE_NAME,"11111") ;
+//    }
 
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-//        RabbitMQUtils.init();
+        ConfigurableApplicationContext ctx  = SpringApplication.run(Application.class, args);
 
-//        Optional<String> optional = Optional.ofNullable(null);
-//        System.out.println(optional.map(l->"123").orElse("345"));
 
 
     }

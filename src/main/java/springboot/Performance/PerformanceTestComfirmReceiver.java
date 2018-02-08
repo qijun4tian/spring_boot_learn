@@ -15,7 +15,7 @@ public class PerformanceTestComfirmReceiver {
 
     @RabbitListener(queues = "test.comfirm",containerFactory = "myContainerFactory1")
     public void receive(String message){
-        if(message.equals(PerformanceTestConfirmProducer.message) && System.currentTimeMillis()< PerformanceTestConfirmProducer.startTime+1000) {
+        if(message.equals(PerformanceTestConfirmProducer.message) && System.currentTimeMillis()< PerformanceTestConfirmProducer.startTime+Constant.oneSecond) {
 //            System.out.println("接收到的消息为"+message);
             confirmReceiveCount.incrementAndGet();
         }
